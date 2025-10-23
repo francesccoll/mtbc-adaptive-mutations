@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+samples_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.txt";
+working_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/kraken/";
+reports_dir=$working_dir"reports/";
+
+laSamples=`awk -F'\t' '{ print $1}' $samples_file`;
+
+cd $working_dir
+
+for sample in $laSamples
+do
+
+# echo $sample
+
+report_file=$reports_dir$sample".kraken.report.txt";
+
+if [ ! -f $report_file ]
+then
+	echo $report_file" could not be found"
+fi
+done
+

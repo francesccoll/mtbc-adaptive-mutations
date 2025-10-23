@@ -1,0 +1,33 @@
+
+
+# This script uses an external script to summarise kraken2 reports across all samples
+
+# See https://github.com/npbhavya/Kraken2-output-manipulation
+
+working_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/kraken/";
+
+cd $working_dir
+
+git clone https://github.com/npbhavya/Kraken2-output-manipulation
+
+bsub -q yesterday -G team346 -J kraken_summary -o kraken_summary.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "python3 ./Kraken2-output-manipulation/kraken-multiple-taxa.py -d ./reports/ -r G -c 1 -o mtb_wh_extended.v1.kraken2_summary.G1.txt"
+
+
+bsub -q yesterday -G team346 -J kraken_summaryS -o kraken_summaryS.out -R "select[mem > 200000] rusage[mem=200000]" -M 200000 "python3 ./Kraken2-output-manipulation/kraken-multiple-taxa.py -d ./reports/ -r S -c 1 -o mtb_wh_extended.v1.kraken2_summary.S.txt"
+
+
+# NOTE: the command below:
+# python3 ./Kraken2-output-manipulation/kraken-multiple-taxa.py -d ./reports/ -r G1 -c 1 -o mtb_wh_extended.v1.kraken2_summary.G1.txt
+# failed with error:
+# kraken-multiple-taxa.py: error: argument -r: invalid choice: 'G1' (choose from 'U', 'R', 'D', 'K', 'P', 'C', 'O', 'F', 'G', 'S')
+
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/kraken/reports
+grep "Mycobacterium tuberculosis complex" *.kraken.report.txt > ../tmp.txt
+cat ../tmp.txt | sed 's/.kraken.report.txt://g' | tr -s ' ' > ../tmp2.txt 
+cd ..
+mv tmp2.txt mtb_wh_extended.v1.kraken2.Mycobacterium_tuberculosis_complex.txt
+
+
+bsub -q yesterday -G team81 -J kraken_zip -o kraken_zip.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "zip -r reports.zip reports/"
+

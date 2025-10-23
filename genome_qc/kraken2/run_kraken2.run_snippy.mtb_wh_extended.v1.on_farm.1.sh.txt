@@ -1,0 +1,44 @@
+#!/bin/sh
+
+set -e
+
+module load kraken2/2.1.2
+
+DBNAME="/lustre/scratch118/malaria/team112/personal/fc4/53.marta_zapotoczna_IE/kraken/standard_db";
+
+# bsub -q basement -G team81 -J kraken2_build -o kraken2_build.out -n24 -R "span[hosts=1] select[mem > 100000] rusage[mem=100000]" -M 100000 "kraken2-build --standard --threads 24 --db $DBNAME"
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.on_farm.1.txt";
+working_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/kraken/";
+reports_dir=$working_dir"reports/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd $working_dir
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+fastq1=$path"/"$lane"_1.fastq.gz";
+fastq2=$path"/"$lane"_2.fastq.gz";
+report_file=$reports_dir$sample".kraken.report.txt";
+
+if [ -f $fastq1 ]
+then
+	if [ ! -f $report_file ]
+	then
+	
+	bsub -q normal -G team81 -J $sample"_kraken" -o $sample"_kraken.out" -R "select[mem > 100000] rusage[mem=100000]" -M 100000 "kraken2 --threads 1 --paired --db $DBNAME --output $sample".kraken.txt" --report $report_file --report-zero-counts --use-names --gzip-compressed $fastq1 $fastq2"
+	# bsub -q normal -G team81 -J $sample"_kraken" -o $sample"_kraken.out" -n8 -R "span[hosts=1] select[mem > 100000] rusage[mem=100000]" -M 100000 "kraken2 --threads 8 --paired --db $DBNAME --output $sample".kraken.txt" --report $report_file --report-zero-counts --use-names --gzip-compressed $fastq1 $fastq2"
+	fi
+else
+	echo $fastq1" could not be found"
+fi
+done
+
