@@ -1,0 +1,11 @@
+
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler/results
+
+grep "Strain: lineage" *.results.txt > tmp.txt
+
+cat tmp.txt | awk -F':' '{ print $1"\t"$3}' | sed 's/.results.txt//g' > tmp2.txt
+
+mv tmp2.txt mtb_wh_extended.v1.tb-profiler.strain.tmp.csv
+
+# header added manually

@@ -1,0 +1,28 @@
+#!/bin/sh
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.on_farm.1.txt";
+tbprofiler_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler/";
+results_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler/results/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd $tbprofiler_dir
+
+for sample in $laSamples
+do
+
+echo $sample
+
+out_report=$tbprofiler_dir$sample"/results/"$sample".results.json";
+out_report2=$results_dir$sample".results.json";
+
+if [ -f $out_report  ]
+then
+
+cp $out_report $out_report2
+rm -r $tbprofiler_dir$sample
+
+fi
+done

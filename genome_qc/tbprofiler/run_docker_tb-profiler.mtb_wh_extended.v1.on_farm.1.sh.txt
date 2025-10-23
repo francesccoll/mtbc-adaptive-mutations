@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# See software_installed_on_the_farm5.sh.txt for instructions on how tb-profiler was installed manually on farm
+
+module load trimmomatic/0.39--1
+module load bwa/0.7.17-r1188
+module load minimap2/2.16=h84994c4_1-c1
+module load bowtie2/2.3.5--py37he860b03_0
+# module load samtools/1.9
+# module load bcftools/1.14--h88f3f91_0
+module load gatk/4.1.4.1
+module load bedtools/2.29.0--hc088bd4_3
+# freebayes
+# tqdm
+# parallel
+# samclip
+# module load snpeff/4.3.1t--2
+# NOTE: tb-profiler failed with snpeff/4.3.1t--2
+# NOTE: delly, samclip, parallel, freebayes, snpeff installed locally; samtools and bcftools v1.15.1 installed locally
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.on_farm.1.txt";
+tbprofiler_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/tb-profiler/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd $tbprofiler_dir
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+fastq1=$path"/"$lane"_1.fastq.gz";
+fastq2=$path"/"$lane"_2.fastq.gz";
+out_report=$tbprofiler_dir"results/"$sample".results.json";
+
+if [ -f $fastq1 ]
+then
+	if [ ! -f $out_report ]
+	then
+		bsub -q normal -G team81 -J $sample"_tb-profiler" -o $sample"_tb-profiler.out" -n8 -R "span[hosts=1] select[mem > 10000] rusage[mem=10000]" -M 10000 "tb-profiler profile --read1 $fastq1 --read2 $fastq2 --prefix $sample --threads 8 --dir $sample"
+
+	fi
+fi
+done
