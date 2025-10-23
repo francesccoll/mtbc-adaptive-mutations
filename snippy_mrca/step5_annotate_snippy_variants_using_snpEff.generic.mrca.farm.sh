@@ -1,0 +1,42 @@
+# Note: make sure reference files ref_file.gff, ref_file.fasta, snpEff.jar and snpEff.config are in the working directory
+# SnpEff version SnpEff 4.3s (build 2017-10-25 10:05), by Pablo Cingolani
+# cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/
+# cp /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta h37rv.fasta
+# cp /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta.fai h37rv.fasta.fai
+# cat /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_H37Rv_gff_v4.gff | sed 's/NC\_000962\.3/Mtb_H37Rv_ancestral/g' > h37rv.gff 
+
+ref=$1;
+ref_file=$2;
+pair_ids=$3;
+
+wd="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/";
+cd $wd
+
+if [ ! -f $wd"/data/"$ref_file"/snpEffectPredictor.bin" ]
+then
+mkdir $wd"data"
+mkdir $wd"data/"$ref_file
+cp $wd$ref_file".gff" $wd"data/"$ref_file"/genes.gff"
+cp $wd$ref_file".fasta" $wd"data/"$ref_file"/sequences.fa"
+java -jar snpEff.jar build -gff3 -v $ref_file
+fi
+
+config_filename=$wd'snpEff.config'; # A new line: 'ref_file.genome : ref_file.fa' needs to be added to snpEff.config, where ref_file is the reference file name
+genome=$ref_file;
+
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/snippy_vcfs/";
+
+laPairs=`awk -F'\t' '{ print $1}' $pair_ids`;
+
+for pair in $laPairs
+do
+	echo $pair
+	vcf_file=$vcf_dir$pair".snippy."$ref".norm.in_ref_VCF.vcf";
+	annotation_stats_file=$vcf_dir$pair".snippy."$ref".norm.in_ref_VCF.snpEff_stats.html";
+	ann_vcf=$vcf_dir$pair".snippy."$ref".norm.in_ref_VCF.snpEff_ann.vcf";
+
+	if [ ! -f $ann_vcf ]
+	then
+		bsub -q normal -G team81 -J $pair"_ann" -o $pair"_ann.out" -R "select[mem > 5000] rusage[mem=5000]" -M 5000 "java -jar $wd'snpEff.jar' ann -nodownload -no-downstream -no-upstream -verbose -stats $annotation_stats_file -c $config_filename $genome $vcf_file > $ann_vcf"
+	fi
+done

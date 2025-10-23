@@ -1,0 +1,91 @@
+
+# This script is used to run Snippy against the reconstructed host MRCA by the identify_host_ancestral_isolate.py pipeline
+#!/bin/bash
+
+set -e
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/";
+samples_paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.fastq_paths.txt";
+reference_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/snippy_vcfs/";
+snippy_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/";
+vcf_dir=$snippy_dir"snippy_vcfs/";
+pairs_file=$snippy_dir"mtb_wh_extended.v1.all_pairs.mrca.txt";
+
+if [ -f $pairs_file ]
+then
+	rm $pairs_file
+fi
+
+output_table=$dir"mtb_wh_extended.v1.all_lineages.output_table.mp.filt.csv";
+
+strains=`awk -F'\t' '{ print $1}' $output_table | grep -v "host_id"`;
+
+for strain in $strains
+do
+
+# Extract out-group
+outgroup=`cat $output_table | grep $strain | awk -F'\t' '{ print $6}'`;
+# outgroup=`awk -v pt=$strain -F'\t' '{ if($1==pt) print $6}' $output_table`;
+
+# Extract host isolates
+host_isolates=`cat $output_table | grep $strain | awk -F'\t' '{ print $2}' | tr ';' '\n'`;
+# host_isolates=`awk -v pt=$strain -F'\t' '{ if($1==pt) print $2}' $output_table | tr ';' '\n'`;
+
+for isolate in $host_isolates
+do
+
+echo $strain" "$outgroup" "$isolate
+# Mapping fastq files of case against reference genome of control
+
+# fastq_dir=`awk -v sample="$isolate" -F'\t' '{ if($1==sample) print $2}' $samples_paths_file`;
+fastq_dir=`cat $samples_paths_file | grep $isolate | tail -n 1 | awk -F'\t' '{ print $3}'`;
+lane=`cat $samples_paths_file | grep $isolate | tail -n 1 | awk -F'\t' '{ print $2}'`;
+fastq1=$fastq_dir"/"$lane"_1.fastq.gz";
+fastq2=$fastq_dir"/"$lane"_2.fastq.gz";
+fastq=$fastq_dir"/"$lane".fastq.gz";
+	
+ref_file=$reference_dir$strain".mrca."$outgroup".fasta"; # e.g. young2017-P100.mrca.SRR3728603.fasta
+pair=$isolate"."$outgroup".mrca."$strain;
+out_dir=$snippy_dir$pair;
+vcf_out=$vcf_dir$pair".snippy.vcf";
+
+echo $fastq1
+echo $fastq2
+echo $ref_file
+
+# for paired-end reads
+if [[ -f $fastq1 && -f $ref_file ]]
+then
+if [ ! -f $vcf_out ]
+then
+if [ ! -d $out_dir ]
+then
+echo "Running Snippy"
+bsub -q normal -G team81 -J $pair -o $pair".out" -n8 -R "span[hosts=1] select[mem > 10000] rusage[mem=10000]" -M 10000 "bash run_snippy_per_sample.farm.sh $out_dir $ref_file $fastq1 $fastq2 $vcf_out"
+echo $pair >> $pairs_file
+fi
+fi
+fi
+
+# for single-end reads
+if [[ -f $fastq && -f $ref_file ]]
+then
+if [ ! -f $vcf_out ]
+then
+if [ ! -d $out_dir ]
+then
+echo "Running Snippy"
+bsub -q normal -G team81 -J $pair -o $pair".out" -n8 -R "span[hosts=1] select[mem > 10000] rusage[mem=10000]" -M 10000 "bash run_snippy_per_sample.single.farm.sh $out_dir $ref_file $fastq $vcf_out"
+echo $pair >> $pairs_file
+fi
+fi
+fi
+
+
+done
+
+
+done
+
+
+

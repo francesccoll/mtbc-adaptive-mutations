@@ -1,0 +1,10 @@
+
+### h37rv
+
+ref="h37rv";
+ref_file="h37rv";
+
+pairs_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.txt"; # file created by script step1_run_snippy.colonising.mtb_wh_extended.v1.sh.txt
+
+bash step5_annotate_snippy_variants_using_snpEff.generic.mrca.farm.sh $ref $ref_file $pairs_file
+

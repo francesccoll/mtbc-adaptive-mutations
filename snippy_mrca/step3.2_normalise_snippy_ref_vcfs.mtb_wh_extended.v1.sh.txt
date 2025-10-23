@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to normalise Snippy VCFs
+
+## Choose new reference
+
+ref_id="h37rv";
+
+pairs_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.txt"; # file created by script step1_run_snippy.colonising.mtb_wh_extended.v1.sh.txt
+
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_vcfs/";
+
+if [ "$ref_id" == "h37rv" ]
+then
+	ref_fasta="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.Chromosome.fasta";
+fi
+
+missing_vcfs="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.missing_snippy_ref_vcfs.norm.txt";
+
+
+laPairs=`awk -F'\t' '{ print $1}' $pairs_file`;
+
+for pair in $laPairs
+do
+
+echo $pair
+# SRR5250774.SRR5250228.mrca.young2017-P103
+IFS='.' read -a array <<< "$pair";
+sample="${array[0]}"; ref="${array[1]}";
+
+vcf_in=$vcf_dir$sample".vcf.gz";
+vcf_out=$vcf_dir$sample".norm.vcf";
+
+if [ -s $vcf_in ]
+then
+	if [ ! -f $vcf_out ]
+	then
+	 	bsub -q normal -G team81 -J $pair"_norm" -o $pair"_norm.out" -R "select[mem > 5000] rusage[mem=5000]" -M 5000 "bash normalise_snippy_ref_vcf.sh $vcf_in $vcf_out $ref_fasta"
+	fi
+else
+	echo "Missing VCF "$vcf_in
+	echo $vcf_in >> $missing_vcfs
+fi
+
+done

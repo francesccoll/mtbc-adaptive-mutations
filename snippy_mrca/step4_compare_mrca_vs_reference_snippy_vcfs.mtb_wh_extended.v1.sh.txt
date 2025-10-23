@@ -1,0 +1,55 @@
+#!/bin/bash
+
+set -e
+
+pairs_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.txt"; # file created by script step1_run_snippy.colonising.mtb_wh_extended.v1.sh.txt
+
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/snippy_vcfs/";
+
+vcf_dir_ref="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_vcfs/";
+
+# Change ref_suffix variable
+
+ref_id="h37rv";
+ref_suffix="h37rv";
+
+if [ "$ref_id" == "h37rv" ]
+then
+	ref_fasta="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+fi
+
+laPairs=`awk -F'\t' '{ print $1}' $pairs_file`;
+
+for pair in $laPairs
+do
+
+echo $pair
+# 14623_5#88.14323_1#38.mrca_final.mpros-1314
+IFS='.' read -a array <<< "$pair";
+sample="${array[0]}";
+
+vcf_mrca=$vcf_dir$pair".snippy."$ref_suffix".norm.vcf";
+vcf_ref=$vcf_dir_ref$sample".norm.vcf";
+vcf_mrca_kept=$vcf_dir$pair".snippy."$ref_suffix".norm.in_ref_VCF.vcf";
+vcf_mrca_rm=$vcf_dir$pair".snippy."$ref_suffix".norm.not_in_ref_VCF.vcf";
+
+if [ ! -f $vcf_mrca ]
+then
+	echo $vcf_mrca" not found"
+fi
+if [ ! -f $vcf_ref ]
+then
+	echo $vcf_ref" not found"
+fi
+
+if [[ -f $vcf_mrca && -f $vcf_ref ]]
+then
+	echo $vcf_ref
+	bsub -q normal -G team346 -J $pair"_refcom" -o $pair"_refcom.out" -R "select[mem > 5000] rusage[mem=5000]" -M 5000 "python3 compare_mrca_vs_reference_snippy_vcfs.py -m $vcf_mrca -r $vcf_ref -g $ref_fasta -k $vcf_mrca_kept -o $vcf_mrca_rm"
+
+fi
+
+done
+
+
+# python3 compare_mrca_vs_reference_snippy_vcfs.py -m SRR3728784.SRR3728726.mrca_final.price2016-H236.snippy.nctc8325.vcf -r SRR3728784.snippy.nctc8325.vcf -g ../snippy_pairs/CC8_NCTC8325.fasta -k SRR3728784.SRR3728726.mrca_final.price2016-H236.snippy.nctc8325.kept.vcf -o SRR3728784.SRR3728726.mrca_final.price2016-H236.snippy.nctc8325.rm.vcf

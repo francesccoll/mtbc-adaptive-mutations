@@ -1,0 +1,53 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to filter out Snippy variants at the edge of the contigs and to lift them over to a common reference genome
+
+## Choose new reference
+
+ref_id="h37rv";
+
+pairs_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.txt"; # file created by script step1_run_snippy.colonising.efm_wh_extended.v1.sh.txt
+
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/snippy_vcfs/";
+
+if [ "$ref_id" == "h37rv" ]
+then
+	ref_fasta="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+fi
+
+num_variants_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.num_var_norm.txt";
+
+laPairs=`awk -F'\t' '{ print $1}' $pairs_file`;
+
+for pair in $laPairs
+do
+
+echo $pair
+
+vcf_in=$vcf_dir$pair".snippy."$ref_id".vcf";
+vcf_out=$vcf_dir$pair".snippy."$ref_id".norm.vcf";
+
+echo "pair num_var num_var_norm" >> $num_variants_file
+
+if [ -s $vcf_in ]
+then
+	num_var=`cat $vcf_in | grep -v "^#" | wc -l`;
+
+	num_var_norm="Not_determined";
+
+	if [ -f $vcf_out ]
+	then
+	 	num_var_norm=`cat $vcf_out | grep -v "^#" | wc -l`;
+	else
+		num_var_norm="File_not_found";
+	fi
+
+	echo $pair" "$num_var" "$num_var_norm >> $num_variants_file
+	echo $pair" "$num_var" "$num_var_norm
+fi
+
+
+
+done

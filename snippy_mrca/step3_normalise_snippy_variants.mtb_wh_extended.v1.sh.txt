@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to filter out Snippy variants at the edge of the contigs and to lift them over to a common reference genome
+
+## Choose new reference
+
+ref_id1="h37rv";
+ref_id2="Mtb_H37Rv_ancestral";
+
+pairs_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.txt"; # file created by script step1_run_snippy.colonising.mtb_wh_extended.v1.sh.txt
+
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/snippy_vcfs/";
+
+if [ "$ref_id1" == "h37rv" ]
+then
+	ref_fasta="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+	ref_length="4411532";
+fi
+
+missing_vcfs="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/snippy_mrca/mtb_wh_extended.v1.all_pairs.mrca.missing_snippy_vcfs.norm.txt";
+
+
+laPairs=`awk -F'\t' '{ print $1}' $pairs_file`;
+
+for pair in $laPairs
+do
+
+echo $pair
+# SRR5250774.SRR5250228.mrca.young2017-P103
+IFS='.' read -a array <<< "$pair";
+sample="${array[0]}"; ref="${array[1]}";
+array2=${array[@]:3:${#array[@]}};
+strain=`echo $array2 | tr ' ' '.'`;
+
+ref_file_fasta=$ref_dir$strain".mrca."$ref".fasta";
+map_ref=$ref_file_fasta;
+
+vcf_in=$vcf_dir$pair".snippy."$ref_id1".vcf";
+vcf_out=$vcf_dir$pair".snippy."$ref_id1".norm.vcf";
+
+if [ -s $vcf_in ]
+then
+	if [ ! -f $vcf_out ]
+	then		
+	 	bsub -q normal -G team346 -J $pair"_norm" -o $pair"_norm.out" -R "select[mem > 5000] rusage[mem=5000]" -M 5000 "bash normalise_snippy_vcf.sh $vcf_in $vcf_out $ref_fasta $ref_id2 $ref_length"
+	fi
+else
+	echo "Missing VCF "$vcf_in
+	echo $vcf_in >> $missing_vcfs
+fi
+
+done
