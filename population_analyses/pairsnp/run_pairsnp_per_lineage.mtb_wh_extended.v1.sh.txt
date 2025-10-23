@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+module load pairsnp/0.2.0--h7c27f81_0
+
+phy_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+phy_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/";
+aln_groups_file=$phy_dir"lineage_alignment_groups.txt";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/pairsnp
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+	aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+	output=$dir"mtb_wh_extended.v1."$aln_group".pairsnp.csv";
+	bsub -q normal -G team346 -J $aln_group"_pairsnp" -o $aln_group"_pairsnp.out" -n 8 –R "span[hosts=1] select[mem > 100000] rusage[mem= 100000]" -M 100000 "pairsnp -c -t 8 $aln_group_mfa2 > $output"
+
+done
