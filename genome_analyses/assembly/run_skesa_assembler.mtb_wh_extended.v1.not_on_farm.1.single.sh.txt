@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# NOTE: Spades, and the improve_assembly pipeline, do not support single-end reads, so SKESA was used instead
+
+output_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/"
+assem_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/";
+
+cd $assem_dir
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.not_on_farm.1.single.txt";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+fastq=$path"/"$lane".fastq.gz";
+
+if [ -f $fastq ]
+then
+
+output=$output_dir$sample".skesa.contigs.fa";
+
+if [ ! -f $output ]
+then
+	bsub -q normal -G team81 -J $sample"_skesa" -o $sample"_skesa.out" -n16 -R "span[hosts=1] select[mem > 100000] rusage[mem=100000]" -M 100000 "skesa --reads $fastq --cores 16 --contigs_out $output"
+fi
+else
+	echo $fastq" could not be found"
+fi
+done

@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# NOTE: Spades, and the improve_assembly pipeline, do not support single-end reads, so SKESA was used instead. Then quast need to be run.
+
+module load quast/5.0.2
+
+output_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/"
+assem_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/";
+quast_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/quast/";
+
+cd $assem_dir
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.not_on_farm.all.single.txt";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+for sample in $laSamples
+do
+
+echo $sample
+
+assembly=$output_dir$sample".skesa.contigs.fa";
+output_quast_dir=$quast_dir$sample;
+
+if [ -f $assembly ]
+then
+	bsub -q normal -G team346 -J $sample"_skesa_quast" -o $sample"_skesa_quast.out" -R "select[mem > 1000] rusage[mem=1000]" -M 1000 "quast.py $assembly --fast --threads 1 -o $output_quast_dir"
+else
+	echo $assembly" not be found"
+fi
+
+
+done

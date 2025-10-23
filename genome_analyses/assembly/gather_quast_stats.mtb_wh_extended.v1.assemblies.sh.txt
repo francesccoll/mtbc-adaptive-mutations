@@ -1,0 +1,14 @@
+
+# NOTE: remember to run: run_quast_on_skesa_assemblies.mtb_wh_extended.v1.single.sh.txt and run_quast_on_skesa_assemblies.mtb_wh_extended.v1.single.step2.sh.txt
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/
+
+cat *.quast.csv | grep -v "^Assembly" | awk '{for (i=2; i<NF; i++) printf $i " "; print $NF}' > aaa
+
+ls *.quast.csv | awk -F'.' '{ print $1}' > bbb
+
+paste -d' ' bbb aaa | tr ' ' '\t' > ../mtb_wh_extended.v1.quast.csv
+
+rm aaa bbb 
+
+# header added manually

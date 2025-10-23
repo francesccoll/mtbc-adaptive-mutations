@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# NOTE: the commands below can be commented out, as they only work on Sanger farm.
+# NOTE: had to add the option '-H $PWD:$assem_dir' to singularity as by default the home directory $HOME is used to store temporary files, leading to disk quota exceeded issues
+
+# Commands needed to make singularity pull work when submitted as a job
+export HTTP_PROXY="wwwcache.sanger.ac.uk:3128"
+export HTTPS_PROXY="${HTTP_PROXY}"
+
+module load ISG/singularity
+
+# singularity cache clean
+
+# bsub -q yesterday -G team81 -J singularity -e singularity_pull.err -o singularity_pull.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "singularity build assembly_pipeline.sif docker://francesccoll/assembly_pipeline:amd64"
+
+assembly_pipeline="/nfs/users/nfs_f/fc4/lustre_scratch118/70.efm_within_host/assembly/assembly_pipeline.sif";
+
+output_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/"
+assem_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/";
+# fastq_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/fastq/";
+
+# It is important to change directory to where assembly files will be created
+
+cd $assem_dir
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.on_farm.1.txt";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+fastq1=$path"/"$lane"_1.fastq.gz";
+fastq2=$path"/"$lane"_2.fastq.gz";
+
+if [ -f $fastq1 ]
+then
+
+output=$output_dir$sample".spades.improved.fasta";
+
+if [ ! -f $output ]
+then
+
+cp $fastq1 .
+cp $fastq2 .
+
+# bsub -q normal -G team81 -J $sample"_assembly_pipeline" -o $sample"_assembly_pipeline.out" -n8 -R "span[hosts=1] select[mem > 10000] rusage[mem=10000]" -M 10000 "singularity run --bind $assem_dir:/data -H $PWD:$assem_dir $assembly_pipeline assembly_pipeline.py --forward_reads /data/$lane"_1.fastq.gz" --reverse_reads /data/$lane"_2.fastq.gz" --sample_id $sample --spades_threads 8 --results_dir /data/output_files --spades_dir /data/spades_dir/$sample"_spades" --improved_dir /data/improved_dir/$sample"_improved""
+
+# for failed runs, increase memory x10
+bsub -q normal -G team81 -J $sample"_assembly_pipeline" -o $sample"_assembly_pipeline.out" -n8 -R "span[hosts=1] select[mem > 100000] rusage[mem=100000]" -M 100000 "singularity run --bind $assem_dir:/data -H $PWD:$assem_dir $assembly_pipeline assembly_pipeline.py --forward_reads /data/$lane"_1.fastq.gz" --reverse_reads /data/$lane"_2.fastq.gz" --sample_id $sample --spades_threads 8 --results_dir /data/output_files --spades_dir /data/spades_dir/$sample"_spades" --improved_dir /data/improved_dir/$sample"_improved""
+
+# bsub -q yesterday -G team81 -J $sample"_assembly_pipeline" -o $sample"_assembly_pipeline.out" -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "singularity run --bind $assem_dir:/data -H $PWD:$assem_dir $assembly_pipeline assembly_pipeline.py --forward_reads /data/$lane"_1.fastq.gz" --reverse_reads /data/$lane"_2.fastq.gz" --sample_id $sample --spades_threads 1 --results_dir /data/output_files --spades_dir /data/spades_dir/$sample"_spades" --improved_dir /data/improved_dir/$sample"_improved""
+
+
+fi
+else
+	echo $fastq1" could not be found"
+fi
+done
+
+
+
