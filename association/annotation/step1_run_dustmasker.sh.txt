@@ -1,0 +1,7 @@
+
+
+input_fasta="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+output_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.dustmasker.txt";
+
+dustmasker -in $input_fasta -out $output_file
+

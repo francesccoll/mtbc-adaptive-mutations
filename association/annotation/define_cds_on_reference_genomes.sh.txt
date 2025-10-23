@@ -1,0 +1,4 @@
+
+# This bash script is used to run define_loci_in_reference_genome.py on Staph reference genomes to define CDS as units of association including their downstream putative regulatory region
+
+python3 define_loci_in_reference_genome.manual.py -i /Users/francesccoll/fellowship/2.projects/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta -g Mycobacterium_tuberculosis_H37Rv_gff_v4.gff -o Mycobacterium_tuberculosis_H37Rv_gff_v4.cds_200bp_downstream.txt -d 200 -l Locus

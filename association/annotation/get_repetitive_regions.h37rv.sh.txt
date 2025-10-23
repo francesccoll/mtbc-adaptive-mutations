@@ -1,0 +1,7 @@
+
+
+
+python3 ~/scripts/annotate_repetitive_regions_on_genome.py -g/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta -p Mycobacterium_tuberculosis_ancestral_reference
+
+cat Mycobacterium_tuberculosis_ancestral_reference.repetitive_regions.gbk | grep "repeat" | awk -F':' '{ print $2}' | tr '..' '\t' | tr ')' 'x' | sed 's/x//g' > Mycobacterium_tuberculosis_ancestral_reference.repetitive_regions.tab
+

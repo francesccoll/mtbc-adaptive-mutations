@@ -1,0 +1,4 @@
+
+
+python3 gff_to_table.manual.py -i Mycobacterium_tuberculosis_H37Rv_gff_v4.gff -o Mycobacterium_tuberculosis_H37Rv_gff_v4.gff.table.txt
+
