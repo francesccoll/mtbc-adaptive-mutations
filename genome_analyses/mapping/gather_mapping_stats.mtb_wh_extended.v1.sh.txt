@@ -1,0 +1,13 @@
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/mapping_stats
+
+cat *.mapping_qc_stats.csv | grep -v "^sample_id" | grep -v -e '^$' > ../mtb_wh_extended.v1.mapping_qc_stats.csv
+
+# header added manually
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_consensus_stats
+
+cat *.consensus.stats.csv | grep -v "^sample" > ../mtb_wh_extended.v1.consensus.stats.csv
+
+# header added manually
+

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.not_on_farm.1.txt";
+snippy_vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_vcfs/";
+snippy_vcf_het_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_vcfs_het/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping
+
+for sample in $laSamples
+do
+
+echo $sample
+
+vcf_file=$snippy_vcf_dir$sample".raw.vcf.gz";
+tmp1=$snippy_vcf_het_dir$sample".tmp1.txt";
+tmp2=$snippy_vcf_het_dir$sample".tmp2.txt";
+tmp3=$snippy_vcf_het_dir$sample".tmp3.txt";
+het_pos_file=$snippy_vcf_het_dir$sample".raw.vcf.het_pos.txt";
+
+bcftools-1.9 view $vcf_file | awk -F'\t' '{ print $8}' | awk -F';' '{for (i=1;i<=NF;i++) {if ($i ~ /^AF=/) {print $i}}}' | sed 's/AF=//g' > $tmp1
+bcftools-1.9 view $vcf_file | awk -F'\t' '{ print $2}' | grep -v -e '^$' | grep -v "^POS" > $tmp2
+paste -d'\t' $tmp2 $tmp1 > $tmp3
+cat $tmp3 | awk -F'\t' '{ if($2>0.2 && $2<0.8) print $1}' > $het_pos_file
+
+rm $tmp1 $tmp2 $tmp3
+
+done
+

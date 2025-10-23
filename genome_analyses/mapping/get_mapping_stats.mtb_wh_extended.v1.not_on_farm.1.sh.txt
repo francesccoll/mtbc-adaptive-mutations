@@ -1,0 +1,39 @@
+#!/bin/sh
+
+working_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/";
+snippy_dir=$working_dir"snippy/";
+mapping_stats_dir=$working_dir"mapping_stats/";
+script="/nfs/users/nfs_f/fc4/lustre_scratch118/software/get_mapping_stats.py";
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.not_on_farm.1.txt";
+
+
+module load samtools/1.9
+module load bcftools/1.9
+
+cd $working_dir
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+vcf_file=$snippy_dir$sample"/snps.raw.vcf";
+bam_file=$snippy_dir$sample"/snps.bam";
+out_file=$mapping_stats_dir$sample".mapping_qc_stats.csv";
+
+if [ -f $vcf_file ]
+then
+	if [ ! -f $out_file ]
+	then
+		bsub -q normal -G team81 -J $sample"_stats" -o $sample"_stats.out" -R "select[mem > 2000] rusage[mem=2000]" -M 2000 "python3 $script --bam_file $bam_file --vcf_file $vcf_file --sample_id $sample"
+	fi
+else
+	echo $vcf_file" could not be found"
+fi
+done
+
+

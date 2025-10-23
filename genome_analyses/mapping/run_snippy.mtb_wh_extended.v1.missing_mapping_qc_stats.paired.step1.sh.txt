@@ -1,0 +1,39 @@
+
+
+module load snippy/4.6.0
+#   snippy 4.6.0 - fast bacterial variant calling from NGS reads
+# NOTE: genbank file provided as reference to Snippy to get VCF files annotated
+
+# Getting single and paired ended subsets
+# see  mtb_wh_extended.v1.missing_mapping_qc_stats.run_accessions.paired.sh
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.missing_mapping_qc_stats.paired.txt";
+reference="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.gbk";
+snippy_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+fastq1=$path"/"$lane"_1.fastq.gz";
+fastq2=$path"/"$lane"_2.fastq.gz";
+out_dir=$snippy_dir$sample;
+out_vcf=$out_dir"/snps.vcf";
+
+if [ -f $fastq1 ]
+then
+	if [ ! -f $out_vcf ]
+	then
+		bsub -q normal -G team81 -J $sample"_snippy" -o $sample"_snippy.out" -n8 -R "span[hosts=1] select[mem > 20000] rusage[mem=20000]" -M 20000 "snippy --outdir $out_dir --ref $reference --R1 $fastq1 --R2 $fastq2"
+	fi
+fi
+done

@@ -1,0 +1,39 @@
+
+#!/bin/bash
+
+set -e
+
+# NOTE: this bash script used create_snippy_consensus.py to create a version of the reference genome with both substitution variants and missing calls initiated from Snippy output files
+
+paths_file="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets/mtb_wh_extended.v1.run_accessions.lane_ids.fastq_paths.missing_mapping_qc_stats.txt";
+reference="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+snippy_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy/";
+output_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_consensus/";
+
+laSamples=`awk -F'\t' '{ print $1}' $paths_file`;
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping
+
+for sample in $laSamples
+do
+
+echo $sample
+lane=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $2}' $paths_file`;
+path=`awk -F'\t' -v sample="$sample" '{ if($1 == sample) print $3}' $paths_file`;
+
+echo $lane
+
+out_dir=$snippy_dir$sample;
+consensus_subs=$out_dir"/snps.consensus.subs.fa";
+aligned=$out_dir"/snps.aligned.fa";
+output=$output_dir$sample".consensus.fa";
+output2=$output_dir$sample".consensus.stats.csv";
+
+if [ -f $consensus_subs ]
+then
+	if [ ! -f $output ]
+	then
+		bsub -q normal -G team81 -J $sample"_snc" -o $sample"_snc.out" -R "select[mem > 2000] rusage[mem=2000]" -M 2000 "python3 create_snippy_consensus.py --reference $reference --consensus_subs $consensus_subs --aligned $aligned --output $output --sample_id $sample --mapping_stats $output2"
+	fi
+fi
+done

@@ -1,0 +1,11 @@
+
+
+bsub -q long -G team81 -J ht_sites_on_farm_1 -o ht_sites_on_farm_1.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.on_farm.1.sh.txt"
+bsub -q long -G team81 -J ht_sites_on_farm_2 -o ht_sites_on_farm_2.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.on_farm.2.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_1 -o ht_sites_not_on_farm_1.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.1.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_2 -o ht_sites_not_on_farm_2.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.2.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_3 -o ht_sites_not_on_farm_3.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.3.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_4 -o ht_sites_not_on_farm_4.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.4.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_5 -o ht_sites_not_on_farm_5.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.5.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_6 -o ht_sites_not_on_farm_6.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.6.sh.txt"
+bsub -q long -G team81 -J ht_sites_not_on_farm_7 -o ht_sites_not_on_farm_7.out -R "select[mem > 10000] rusage[mem=10000]" -M 10000 "bash extract_heterozygous_sites.mtb_wh_extended.v1.not_on_farm.7.sh.txt"
