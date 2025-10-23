@@ -1,0 +1,12 @@
+host_id	host_isolates	min_host_isolates_dis	max_host_isolates_dis	host_mrca_node	outgroup_isolate	outgroup_snp_dis
+asare2021_RL028_lineage5.1.4_strain1	ERR751314;SRR11461650	0	0	node76	ERR1215476	257
+asare2021_RL031_lineage5.1.2_strain1	ERR1082123;SRR11461672	0	0	node94	ERR386983	152
+walker2013_P000059_lineage5.1.3_strain1	ERR046918;ERR046933	2	2	node80	ERR386983	289
+walker2018b_06TB_0267_lineage5.1.4_strain1	ERR2510708	no_distances_found	no_distances_found	node75	ERR1215476	250
+walker2018b_RIVM_44_lineage5.1_strain1	ERR2517377	no_distances_found	no_distances_found	node84	ERR386983	281
+walker2018b_06TB_0336_lineage6.3.1_strain1	ERR2510777	no_distances_found	no_distances_found	node32	ERR387025	100
+walker2018b_06TB_0345_lineage6.3.1_strain1	ERR2510786	no_distances_found	no_distances_found	node35	ERR387025	101
+walker2018b_06TB_0350_lineage6.3.1_strain1	ERR2510791	no_distances_found	no_distances_found	node34	ERR387025	101
+walker2018b_06TB_0375_lineage6.1.1_strain1	ERR2510816	no_distances_found	no_distances_found	node45	ERR1082130	250
+walker2018b_RIVM_372_lineage6.1.2_strain1	ERR2517594	no_distances_found	no_distances_found	node41	SRR11444029	296
+walker2018b_RIVM_66_lineage6.2.3_strain1	ERR2517500	no_distances_found	no_distances_found	node37	SRR11444029	579

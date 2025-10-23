@@ -1,0 +1,35 @@
+
+
+dir="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/identify_ancestral/";
+phy_dir="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/phylogeny/fasttree/";
+dis_dir="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/pairsnp/";
+
+align_groups_file="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler/lineage_alignment_groups.txt";
+
+align_groups=`cat $align_groups_file | awk -F'\t' '{ print $1 }'`;
+
+for align_group in $align_groups
+do
+
+align_group="lineage2";
+tree_file=$phy_dir"mtb_wh_extended.v1."$align_group".masked.core.fasttree.rooted.nwk";
+sdis_file=$dis_dir"mtb_wh_extended.v1."$align_group".pairsnp.csv";
+meta_file=$dir"isolate_ids_"$align_group".csv"
+oput_file=$dir"mtb_wh_extended.v1."$align_group".output_table.csv";
+oput_file2=$dir"mtb_wh_extended.v1."$align_group".output_table.mp.csv"; # only multiple isolates per patients
+
+if [[ -f $tree_file && -f $sdis_file && -f $meta_file ]]
+then
+echo $align_group
+if [ ! -f $oput_file ]
+then
+python3 identify_host_ancestral_isolate.step1.py -t $tree_file -d $sdis_file -m $meta_file -s 10 -o $oput_file
+fi
+
+if [ ! -f $oput_file2 ]
+then
+cat $oput_file | grep -v "no_distances_found" > $oput_file2
+fi
+fi
+
+done

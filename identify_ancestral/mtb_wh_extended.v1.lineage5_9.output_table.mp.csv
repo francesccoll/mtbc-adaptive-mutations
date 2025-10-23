@@ -1,0 +1,4 @@
+host_id	host_isolates	min_host_isolates_dis	max_host_isolates_dis	host_mrca_node	outgroup_isolate	outgroup_snp_dis
+asare2021_RL028_lineage5.1.4_strain1	ERR751314;SRR11461650	0	0	node76	ERR1215476	257
+asare2021_RL031_lineage5.1.2_strain1	ERR1082123;SRR11461672	0	0	node94	ERR386983	152
+walker2013_P000059_lineage5.1.3_strain1	ERR046918;ERR046933	2	2	node80	ERR386983	289

@@ -1,0 +1,117 @@
+
+# NOTE: this script runs scripts identify_host_ancestral_isolate.step1.py to identify_host_ancestral_isolate.step4.py for dataset mtb_wh_extended.v1, wherein the MRCA sequence of all isolates from the same host are created
+
+# NOTE: run each command line at a time
+
+bash identify_host_ancestral_isolate.step1.sh.txt
+
+## Creating input_assemblies file
+
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly
+cat ../datasets/mtb_wh_extended.v1.run_accessions.txt | grep -v -f ../datasets/mtb_wh_extended.v1.run_accessions.not_on_farm.all.single.txt | awk -F' ' '{ print $1"\t/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/"$1".spades.improved.fasta"}' > aaa
+cat ../datasets/mtb_wh_extended.v1.run_accessions.not_on_farm.all.single.txt | awk -F' ' '{ print $1"\t/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/assembly/output_files/"$1".skesa.contigs.fa"}' > bbb
+cat aaa bbb > ../identify_ancestral/mtb_wh_extended.v1.assemblies_paths.txt
+rm aaa bbb
+
+
+## Creating input_fastq file
+# NOTE: although some mtb fastq.gz were available on farm, all run_accessions_to_download.txt (see run_accessions_to_download.sh) were downloaded directly from SRA
+# for simplicity, the file with all the dataset accessions mtb_wh_extended.v1.run_accessions.txt was used to create the fastq directories file
+cd /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/datasets
+cat ../datasets/mtb_wh_extended.v1.run_accessions.txt | awk -F' ' '{ print $1"\t"$1"\t/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/fastq/"$1"/"}' > ../identify_ancestral/mtb_wh_extended.v1.fastq_paths.txt
+
+
+## Running identify_host_ancestral_isolate.step2.py
+
+## NOTE: script identify_host_ancestral_isolate.step2.py was edited to accept --input_fastq with three columns, and deal with single-end fastq.gz
+
+input_metadata="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/isolate_ids.all_lineages.csv";
+output_table="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.all_lineages.mtb_wh_extended.v1.all_lineages.output_table.mp.mp.csv";
+input_assemblies="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.assemblies_paths.txt";
+input_fastq="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.fastq_paths.txt";
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/snippy_vcfs/";
+output_bash="mtb_wh_extended.v1.host_ancestral_isolate.snippy_jobs.sh";
+
+python3 identify_host_ancestral_isolate.step2.py --input_metadata $input_metadata --output_table $output_table --input_assemblies $input_assemblies --input_fastq $input_fastq --vcf_dir $vcf_dir --output_bash $output_bash
+
+bash mtb_wh_extended.v1.host_ancestral_isolate.snippy_jobs.sh 
+
+cat mtb_wh_extended.v1.host_ancestral_isolate.snippy_jobs.sh | grep "walker2018b_ " | sed 's/walker2018b_ /walker2018b_/g' > mtb_wh_extended.v1.host_ancestral_isolate.snippy_jobs.walker2018b.sh
+bash mtb_wh_extended.v1.host_ancestral_isolate.snippy_jobs.walker2018b.sh
+
+
+## Running identify_host_ancestral_isolate.step3.py
+
+raxml_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/raxml_files/";
+# NOTE: file mtb_wh_extended.v1.all_lineages.output_table.mp.step3.csv was created without the strain ids for which identify_host_ancestral_isolate.step3.py failed > to check
+output_table="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.all_lineages.output_table.mp.csv ";
+
+# 1056 mtb_wh_extended.v1.all_lineages.output_table.mp.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | sed 's/walker2018b_ /walker2018b_/g' > aaa
+mv aaa mtb_wh_extended.v1.all_lineages.output_table.mp.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | 
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch1.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 200 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch2.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 300 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch3.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 400 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch4.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 500 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch5.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 600 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch6.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 700 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch7.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 800 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch8.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | head -n 900 | tail -n 100 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch9.csv
+cat mtb_wh_extended.v1.all_lineages.output_table.mp.csv | tail -n 156 > mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch10.csv
+# header added manually
+
+# NOTE: see files mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch[*].failed.to_check.txt
+
+python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch1.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch2.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch2.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch3.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch3.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch4.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch4.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch5.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch5.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch6.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch6.nohup.out &
+ 
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch7.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch7.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch8.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch8.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch9.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch9.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step3.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch10.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step3.batch10.nohup.out &
+
+
+
+# new output_table created for step4
+
+input_assemblies="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/mtb_wh_extended.v1.assemblies_paths.txt";
+vcf_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/snippy_vcfs/";
+raxml_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/identify_ancestral/raxml_files/";
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch1.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch1.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch2.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch2.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch3.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch3.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch4.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch4.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch5.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch5.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch6.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch6.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch7.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch7.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch8.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch8.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch9.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch9.nohup.out &
+
+nohup python3 identify_host_ancestral_isolate.step4.py --output_table mtb_wh_extended.v1.all_lineages.output_table.mp.step3.batch10.csv --vcf_dir $vcf_dir --raxml_dir $raxml_dir --input_assemblies $input_assemblies > step4.batch10.nohup.out &
+
+
+
+
