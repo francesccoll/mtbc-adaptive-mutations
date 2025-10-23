@@ -7,7 +7,7 @@ This GitHub project contains the data and code necessary to reproduce the findin
 * identify_ancestral: pipeline to reconstruct the nucleotide sequence of the most recent common ancestor (MRCA) of all isolates from the same strain.
 * snippy_mrca: code to call genetic variants against the MRCA sequence of MTBC strains: detection of de novo acquired genetic variants during infection.
 * association: R code used to filter within-host de novo acquired mutations, and to identify loci enriched by these mutations.
-* dr_acquisition: files and code to determine drug-resistance acquisition rates
+* dr_acquisition: files and code to determine drug-resistance acquisition rates.
 
 
 # Citation
