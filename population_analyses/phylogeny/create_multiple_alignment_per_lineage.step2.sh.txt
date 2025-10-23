@@ -1,0 +1,100 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to create the Mtb multiple alignments per lineage
+# The first step consists in creating text files with all snippy consensus file names per lineage group
+# This second step concatenates all snippy consensus files from the same lineage group into separate multiple alignments
+# NOTE: the reference genome is also added to the mfa, as it's an ancestral version of H37rv, it can also be used as outgroup to root each tree
+
+# cd /Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler
+# cat mtb_wh_extended.v1.tb-profiler.num_strain.csv | awk -F'\t' '{ print $3}' | grep -v "alignment" | sort | uniq > lineage_alignment_groups.txt
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/"; # directory with latest alignments
+con_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/mapping/snippy_consensus/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+reference="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/reference/Mycobacterium_tuberculosis_ancestral_reference.fasta";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+cd $con_dir
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+	consensus_files=$dir$aln_group".consensus_files.txt";
+	aln_group_mfa=$dir"mtb_wh_extended.v1."$aln_group".mfa";
+
+	cat `cat $consensus_files | tr '\n' ' '` > $aln_group_mfa
+
+	cat $aln_group_mfa $reference > aaa.mfa
+	mv aaa.mfa $aln_group_mfa
+
+	seqkit stats $aln_group_mfa
+done
+
+# See size of latest alignments below
+
+# lineage1
+# file                             format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage1.mfa  FASTA   DNA        943  4,160,074,676  4,411,532  4,411,532  4,411,532
+# lineage2
+# file                             format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage2.mfa  FASTA   DNA      5,916  26,098,623,312  4,411,532  4,411,532  4,411,532
+# lineage3
+# file                             format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage3.mfa  FASTA   DNA      1,723  7,601,069,636  4,411,532  4,411,532  4,411,532
+# lineage4.3_4.4
+# file                                   format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage4.3_4.4.mfa  FASTA   DNA      4,122  18,184,334,904  4,411,532  4,411,532  4,411,532
+# lineage4.5_to_4.9
+# file                                      format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage4.5_to_4.9.mfa  FASTA   DNA      3,577  15,780,049,964  4,411,532  4,411,532  4,411,532
+# lineage4_4.1_4.2
+# file                                     format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage4_4.1_4.2.mfa  FASTA   DNA      2,570  11,337,637,240  4,411,532  4,411,532  4,411,532
+# lineage5
+# file                             format  type  num_seqs      sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage5.mfa  FASTA   DNA         42  185,284,344  4,411,532  4,411,532  4,411,532
+# lineage6
+# file                             format  type  num_seqs      sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage6.mfa  FASTA   DNA         30  132,345,960  4,411,532  4,411,532  4,411,532
+# lineage9
+# file                             format  type  num_seqs     sum_len    min_len    avg_len    max_len
+# mtb_wh_extended.v1.lineage9.mfa  FASTA   DNA          4  17,646,128  4,411,532  4,411,532  4,411,532
+
+
+# lineage1.1
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage1.1.mfa  FASTA   DNA        608  2,682,211,456  4,411,532  4,411,532  4,411,532
+# lineage1.2
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage1.2.mfa  FASTA   DNA        330  1,455,805,560  4,411,532  4,411,532  4,411,532
+# lineage2
+# file                                                                                                  format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage2.mfa  FASTA   DNA      5,940  26,204,500,080  4,411,532  4,411,532  4,411,532
+# lineage3
+# file                                                                                                  format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage3.mfa  FASTA   DNA      1,750  7,720,181,000  4,411,532  4,411,532  4,411,532
+# lineage4.1
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.1.mfa  FASTA   DNA      1,915  8,448,083,780  4,411,532  4,411,532  4,411,532
+# lineage4.2
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.2.mfa  FASTA   DNA        594  2,620,450,008  4,411,532  4,411,532  4,411,532
+# lineage4.3
+# file                                                                                                    format  type  num_seqs         sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.3.mfa  FASTA   DNA      3,505  15,462,419,660  4,411,532  4,411,532  4,411,532
+# lineage4.4
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.4.mfa  FASTA   DNA        750  3,308,649,000  4,411,532  4,411,532  4,411,532
+# lineage4.5_4.9
+# file                                                                                                        format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.5_4.9.mfa  FASTA   DNA      1,318  5,814,399,176  4,411,532  4,411,532  4,411,532
+# lineage4.8
+# file                                                                                                    format  type  num_seqs        sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage4.8.mfa  FASTA   DNA      2,241  9,886,243,212  4,411,532  4,411,532  4,411,532
+# lineage5_9
+# file                                                                                                    format  type  num_seqs      sum_len    min_len    avg_len    max_len
+# /nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/mtb_wh_extended.v1.lineage5_9.mfa  FASTA   DNA         74  326,453,368  4,411,532  4,411,532  4,411,532

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+
+module load bsub.py/0.42.1
+module load iqtree/1.6.10=he860b03_0-c1
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+
+	aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+
+	pattern=`snp-sites -C $aln_group_mfa2`;
+
+	# threads increased to 24 to reduce running time
+	# memory had to be increased to 600G
+	bsub.py -o iqtree_"$aln_group".out --threads 24 --queue basement 600 iqtree_"$aln_group" iqtree -fconst $pattern -s $aln_group_mfa2 -nt AUTO -ntmax 12 -mem 600G -bb 1000 -m MFP
+
+done
+
+
+# NOTE: for some alignments, IQTREE runs failed due to segmentation fault issue
+# See run_iqtree_per_lineage.iqtree2.sh.txt
+

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+set -e
+
+
+# This bash script uses the perl script create_bed_file_core_genes_on_reference.pl.txt to create a BED file with the coordinates of core genes on a reference genome
+# NOTE: this is part of the analysis conducted previously: /Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo
+
+
+# NOTE: the input file gene_presence_absence.csv may need to be reformatted:
+# cat gene_presence_absence_roary.csv | tr '\r' '\n' > aaa 
+# mv aaa gene_presence_absence_roary.rf.csv
+
+# INPUT files
+
+# cd /nfs/users/nfs_f/fc4/lustre_scratch118/49.gwas_power_calculations/mtbc/panaroo/
+cd /Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo
+
+# gene_presence_absence="/nfs/users/nfs_f/fc4/lustre_scratch118/49.gwas_power_calculations/mtbc/panaroo/results/gene_presence_absence_roary.csv";
+gene_presence_absence="/Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo/gene_presence_absence_roary.rf.csv";
+
+# reference_gff="/nfs/users/nfs_f/fc4/lustre_scratch118/49.gwas_power_calculations/mtbc/panaroo/H37Rv.prokka.gff";
+reference_gff="/Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo/H37Rv.prokka.gff";
+
+reference_name="H37Rv.prokka"; # name of reference genome in the header of gene_presence_absence.csv
+
+copies="one";
+
+num="2565"; # number of samples defining pan-genome, in this case 99% of 2591
+
+output_bed_file="H37Rv.mtbc_core_genome.one_copy.bed";
+
+perl ~/scripts/create_bed_file_core_genes_on_reference.pl.txt $gene_presence_absence $reference_gff $reference_name $num $copies $output_bed_file
+
+
+bedtools sort -i $output_bed_file > aaa
+mv aaa $output_bed_file
+
+
+
+copies="all";
+
+output_bed_file="H37Rv.mtbc_core_genome.all_copies.bed";
+
+perl ~/scripts/create_bed_file_core_genes_on_reference.pl.txt $gene_presence_absence $reference_gff $reference_name $num $copies $output_bed_file
+
+
+bedtools sort -i $output_bed_file > aaa
+mv aaa $output_bed_file
+
+
+### Creating stricter and smaller core-genome > for faster phylogenetic analyses
+
+gene_presence_absence="/Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo/gene_presence_absence_roary.rf.csv";
+reference_gff="/Users/francesccoll/fellowship/2.projects/49.gwas_power_calculations/mtbc/panaroo/H37Rv.prokka.gff";
+reference_name="H37Rv.prokka"; # name of reference genome in the header of gene_presence_absence.csv
+copies="one";
+num="2591"; # number of samples defining pan-genome, in this case 100% of 2591
+output_bed_file="H37Rv.mtbc_strict_core_genome.one_copy.bed";
+
+perl ~/scripts/create_bed_file_core_genes_on_reference.pl.txt $gene_presence_absence $reference_gff $reference_name $num $copies $output_bed_file
+# $num_core_genes_overall > 1992
+
+bedtools sort -i $output_bed_file > aaa
+mv aaa $output_bed_file
+
+
+######### Length of core-genome alignment on the reference genome (R code)
+
+laPos = vector()
+
+lmT = read.delim("H37Rv.mtbc_strict_core_genome.one_copy.bed",sep="\t",header=F)
+lmT = read.delim("H37Rv.mtbc_core_genome.one_copy.bed",sep="\t",header=F)
+dim(lmT)
+# [1] 1958    5 > mtbc_strict_core_genome
+# [1] 3462    5 > mtbc_core_genome
+
+for(g in 1:nrow(lmT))
+{
+	laPos = c(laPos, (seq(as.numeric(lmT[g,2]),as.numeric(lmT[g,3]),1)) )
+}
+
+length(unique(sort(laPos)))
+# [1] 2068812 > mtbc_strict_core_genome
+# [1] 3371082 > mtbc_core_genome
+

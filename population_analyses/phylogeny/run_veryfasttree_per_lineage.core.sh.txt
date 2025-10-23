@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+out_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/veryfasttree/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+
+	aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.core.mfa";
+
+	outtree=$out_dir"mtb_wh_extended.v1."$aln_group".masked.core.veryfasttree.nwk";
+
+	outfile="veryfasttree_"$aln_group".out";
+
+	if [ ! -f $outtree ]
+	then 
+		bsub -q long -G team81 -J veryfasttree_"$aln_group" -o $outfile -n16 -R "span[hosts=1] select[mem > 100000] rusage[mem=100000]" -M 100000 "VeryFastTree -gtr -gamma -threads 16 -nt $aln_group_mfa2 -out $outtree"
+	fi
+done
+
+
+
+

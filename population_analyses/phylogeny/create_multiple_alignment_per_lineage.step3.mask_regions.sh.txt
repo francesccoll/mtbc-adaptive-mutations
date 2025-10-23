@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to create the Mtb multiple alignments per lineage
+# The first step consists in creating text files with all snippy consensus file names per lineage group
+# This second step concatenates all snippy consensus files from the same lineage group into separate multiple alignments
+# NOTE: the reference genome is also added to the mfa, as it's an ancestral version of H37rv, it can also be used as outgroup to root each tree
+
+# cd /Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler
+# cat mtb_wh_extended.v1.tb-profiler.num_strain.csv | awk -F'\t' '{ print $3}' | grep -v "alignment" | sort | uniq > lineage_alignment_groups.txt
+
+dir0="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+masked_regions=$dir0"holt2018_and_marin2022.masked_regions.tab";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+cd $con_dir
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+	consensus_files=$dir$aln_group".consensus_files.txt";
+	aln_group_mfa1=$dir"mtb_wh_extended.v1."$aln_group".mfa";
+	aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+	# python2.7 ~/bin/remove_blocks_from_aln.py -a $aln_group_mfa1 -o $aln_group_mfa2 -t $masked_regions
+	bsub -q normal -G team346 -J $aln_group -o $aln_group".masked.out" -R "select[mem > 100000] rusage[mem= 100000]" -M 100000 "python2.7 ~/bin/remove_blocks_from_aln.py -a $aln_group_mfa1 -o $aln_group_mfa2 -t $masked_regions"
+	# seqkit stats $aln_group_mfa2
+
+done

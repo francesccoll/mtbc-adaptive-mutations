@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+
+module load fasttreemp/2.1.11
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/";
+out_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/fasttree/";
+out_dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/fasttree/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+cd $out_dir
+
+for aln_group in $aln_groups
+do
+
+echo $aln_group
+
+aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.core.mfa";
+
+outtree=$out_dir"mtb_wh_extended.v1."$aln_group".masked.core.fasttree.nwk";
+
+outfile="fasttree_"$aln_group".out";
+
+	if [ ! -f $outtree ]
+	then 
+		# bsub -q long -G team346 -J fasttree_"$aln_group" -o $outfile -n32 -R "span[hosts=1] select[mem > 200000] rusage[mem=200000]" -M 200000 "FastTreeMP -nt -gtr -gamma $aln_group_mfa2 > $outtree"
+		# more memory and time for lineage 2 and lineage4.3
+		bsub -q basement -G team346 -J fasttree_"$aln_group" -o $outfile -n32 -R "span[hosts=1] select[mem > 400000] rusage[mem=400000]" -M 400000 "FastTreeMP -nt -gtr -gamma $aln_group_mfa2 > $outtree"
+
+	fi
+done
+
+
+
+

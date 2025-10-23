@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+# This bash script is used to create the Mtb multiple alignments per lineage
+# This first step consists in creating text files with all snippy consensus file names per lineage group
+# The second step concatenates all snippy consensus files from the same lineage group into separate multiple alignments
+
+# cd /Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler
+# cat mtb_wh_extended.v1.tb-profiler.num_strain.csv | awk -F'\t' '{ print $3}' | grep -v "alignment" | sort | uniq > lineage_alignment_groups.txt
+
+aln_groups_file="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler/lineage_alignment_groups.txt";
+aln_groups_lin_file="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler/mtb_wh_extended.v1.tb-profiler.num_strain.csv";
+samples_lin_file="/Users/francesccoll/fellowship/2.projects/67.mtb_within_host/tb-profiler/mtb_wh_extended.v1.tb-profiler.strain.csv";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+	consensus_files=$aln_group".consensus_files.txt"
+
+	# extract all lineages of alignment group
+	lineages=`cat $aln_groups_lin_file | awk -F'\t' -v aln_group="$aln_group" '{ if($3 == aln_group) print $1}'`;
+
+	for lineage in $lineages
+	do
+		echo "	"$lineage
+		# extract all lineages of alignment group
+		samples=`cat $samples_lin_file | awk -F'\t' -v lineage="$lineage" '{ if($2 == lineage) print $1}'`;
+		for sample in $samples
+		do
+			echo $sample".consensus.fa" >> $consensus_files
+		done
+	done	
+done

@@ -1,0 +1,40 @@
+
+# NOTE: for some alignments, some IQTREE run failed due to segmentation fault issue
+# Thus, the latest version of IQTREE2 was downloaded (Linux pre-compiled version) to see if segmentation fault issue could be avoided
+# However, this did not fix the issue
+# Also "-t PARS" option added as recommended here: https://groups.google.com/g/iqtree/c/te-CbizSodg
+# and that solved the segmentation fault issue 
+# NOTE: the jobs below failed due to not enough memory with 600G, so it was increased to 700G
+
+module load bsub.py/0.42.1
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+
+aln_group="lineage2";
+aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+pattern=`snp-sites -C $aln_group_mfa2`;
+
+bsub.py -o iqtree2_"$aln_group".out --threads 24 --queue basement 700 iqtree2_"$aln_group" /nfs/users/nfs_f/fc4/lustre_scratch118/software/iqtree-2.2.0-Linux/bin/iqtree2 -fconst $pattern -s $aln_group_mfa2 -t PARS -nt AUTO -ntmax 12 -mem 700G -bb 1000 -m MFP
+
+
+aln_group="lineage3";
+aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+pattern=`snp-sites -C $aln_group_mfa2`;
+
+bsub.py -o iqtree2_"$aln_group".out --threads 24 --queue basement 700 iqtree2_"$aln_group" /nfs/users/nfs_f/fc4/lustre_scratch118/software/iqtree-2.2.0-Linux/bin/iqtree2 -fconst $pattern -s $aln_group_mfa2 -t PARS -nt AUTO -ntmax 12 -mem 700G -bb 1000 -m MFP
+# 652829 submitted
+
+aln_group="lineage4_4.1_4.2";
+aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+pattern=`snp-sites -C $aln_group_mfa2`;
+
+bsub.py -o iqtree2_"$aln_group".out --threads 24 --queue basement 700 iqtree2_"$aln_group" /nfs/users/nfs_f/fc4/lustre_scratch118/software/iqtree-2.2.0-Linux/bin/iqtree2 -fconst $pattern -s $aln_group_mfa2 -t PARS -nt AUTO -ntmax 12 -mem 700G -bb 1000 -m MFP
+# 652873 submitted
+
+aln_group="lineage4.5_to_4.9";
+aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.mfa";
+pattern=`snp-sites -C $aln_group_mfa2`;
+
+bsub.py -o iqtree2_"$aln_group".out --threads 24 --queue basement 700 iqtree2_"$aln_group" /nfs/users/nfs_f/fc4/lustre_scratch118/software/iqtree-2.2.0-Linux/bin/iqtree2 -fconst $pattern -s $aln_group_mfa2 -t PARS -nt AUTO -ntmax 12 -mem 700G -bb 1000 -m MFP
+# 653003 submitted
+

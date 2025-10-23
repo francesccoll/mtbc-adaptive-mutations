@@ -1,0 +1,36 @@
+#!/bin/bash
+
+set -e
+
+module load bsub.py/0.42.1
+# module load iqtree/1.6.10=he860b03_0-c1
+
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny/";
+dir="/nfs/users/nfs_f/fc4/lustre_scratch118/67.mtb_within_host/phylogeny2/";
+aln_groups_file=$dir"lineage_alignment_groups.txt";
+
+aln_groups=`cat $aln_groups_file | awk -F'\t' '{ print $1}'`;
+
+for aln_group in $aln_groups
+do
+	echo $aln_group
+
+	aln_group_mfa2=$dir"mtb_wh_extended.v1."$aln_group".masked.core.mfa";
+
+	# threads increased to 24 to reduce running time
+	# memory had to be increased to 400G
+	# memory had to be increased to 600G
+	outtree=$dir"mtb_wh_extended.v1."$aln_group".masked.core.mfa.contree";
+
+	if [ ! -f $outtree ]
+	then
+		pattern=`snp-sites -C $aln_group_mfa2`;
+
+		bsub.py -o iqtree_"$aln_group"_core.out --threads 24 --queue basement 600 iqtree_"$lan_group"_core /nfs/users/nfs_f/fc4/lustre_scratch118/software/iqtree-2.2.0-Linux/bin/iqtree2 -fconst $pattern -s $aln_group_mfa2 -t PARS -T AUTO --mem 600G -B 1000 -m MFP
+	fi
+done
+
+# NOTE: option -ntmax 12 removed as option not found in executable used
+# NOTE: -bb option replaced by -B (Replicates for ultrafast bootstrap (>=1000))
+# NOTE: -nt AUTO replaced with -T AUTO
+# NOTE: would using the fasttree starting tree shorten the running time? > try next
